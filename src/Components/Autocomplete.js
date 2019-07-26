@@ -48,64 +48,88 @@ class Autocomplete extends Component {
           noResults: ''
         })
 
-        fetch(
-          `http://35.180.182.8/search?keywords=${query}&language=${
-          navigator.language
-          }&limit=${currentWidth <= 600 ? this.props.mobileResultsLimit :
-            currentWidth > 600 && currentWidth < 992 ? this.props.tabletResultsLimit : this.props.desktopResultsLimit
-          }` // Limit the results depending on screen size
-        )
-          .then(res => {
-            res.text().then(data => {
-              if (res.status === 200) {
+        /*** Caching or requesting ***/
+        const cached = JSON.parse(localStorage.getItem(query)); // cached object or null
+        const nowTimestamp = Date.now();
 
-                // Setting loading to false
-                this.setState({
-                  loading: false
-                })
+        // Checking if response data for query is cached and if time since caching is within specified prop
+        if (cached && (nowTimestamp - cached.timestamp) / 1000 < this.props.cachingTimeThreshold) {
 
-                data = JSON.parse(data);
-
-                // Adding timestamp
-                data.timestamp = Date.now();
-
-                data.entries = data.entries.map((item, index) => {
-                  return {
-                    query: item.name,
-                    key: index
-                  };
-                });
-
-                let buttonDisabled = !data.length;
-
-                // Updating state with fetched data
-                this.setState({
-                  dataSource: data.entries,
-                  modalOpen: true,
-                  buttonDisabled: buttonDisabled,
-                  noResults: buttonDisabled ? "No results found" : ""
-                });
-
-                // Caching data if needed
-                if (cache === true) localStorage.setItem(query, JSON.stringify(data));
-
-                resolve(data);
-
-              } else {
-                resolve([]);
-              }
-            });
-          })
-          .catch(err => {
-            this.setState({
-              error: true,
-              dataSource: [],
-              loading: false
-            })
-            resolve([])
+          // Updating state with fetched data
+          this.setState({
+            dataSource: cached.entries,
+            modalOpen: true,
+            noResults: '',
+            error: false,
+            loading: false
           });
-      }
-    });
+
+          resolve(cached.entries);
+
+        }
+
+        // Else fetch normally
+        else {
+
+          fetch(
+            `http://35.180.182.8/search?keywords=${query}&language=${
+            navigator.language
+            }&limit=${currentWidth <= 600 ? this.props.mobileResultsLimit :
+              currentWidth > 600 && currentWidth < 992 ? this.props.tabletResultsLimit : this.props.desktopResultsLimit
+            }` // Limit the results depending on screen size
+          )
+            .then(res => {
+              res.text().then(data => {
+                if (res.status === 200) {
+
+                  // Setting loading to false
+                  this.setState({
+                    loading: false
+                  })
+
+                  data = JSON.parse(data);
+
+                  // Adding timestamp
+                  data.timestamp = Date.now();
+
+                  data.entries = data.entries.map((item, index) => {
+                    return {
+                      query: item.name,
+                      key: index
+                    };
+                  });
+
+                  let buttonDisabled = !data.length;
+
+                  // Updating state with fetched data
+                  this.setState({
+                    dataSource: data.entries,
+                    modalOpen: true,
+                    buttonDisabled: buttonDisabled,
+                    noResults: buttonDisabled ? "No results found" : ""
+                  });
+
+                  // Caching data if needed
+                  if (cache) localStorage.setItem(query, JSON.stringify(data));
+
+                  resolve(data);
+
+                } else {
+                  resolve([]);
+                }
+              });
+            })
+            .catch(err => {
+              this.setState({
+                error: true,
+                dataSource: [],
+                loading: false
+              })
+              resolve([])
+            });
+          }
+        }
+      });
   };
 
   // Debouncing request method
@@ -129,29 +153,9 @@ class Autocomplete extends Component {
       value: value
     });
 
-    const cached = JSON.parse(localStorage.getItem(value)); // cached object or null
-    const nowTimestamp = Date.now();
+    // Fetching data with debounce
+    this.fetchResultsDebounced(value, true);
 
-    // Checking if response data for query is cached and if time since caching is within specified prop
-    if (cached && (nowTimestamp - cached.timestamp) / 1000 < this.props.cachingTimeThreshold) {
-
-      // Updating state with fetched data
-      this.setState({
-        dataSource: cached.entries,
-        modalOpen: true,
-        noResults: '',
-        error: false,
-        loading: false
-      });
-
-    }
-
-    // Else fetch normally
-    else {
-
-      // Fetching data with debounce
-      this.fetchResultsDebounced(value, true);
-    }
   };
 
   handleButtonClick = query => {
@@ -264,10 +268,10 @@ class Autocomplete extends Component {
           </AutoComplete>
 
           <div>
-          {
-            // Dynamically render no results message
-            this.state.noResults
-          }
+            {
+              // Dynamically render no results message
+              this.state.noResults
+            }
           </div>
 
           {
@@ -331,10 +335,10 @@ class Autocomplete extends Component {
               </AutoComplete>
 
               <div>
-              {
-                // Dynamically render no results message
-                this.state.noResults
-              }
+                {
+                  // Dynamically render no results message
+                  this.state.noResults
+                }
               </div>
 
               {
