@@ -12,8 +12,9 @@ Autocomplete React component made using Ant Design framework.
 
 # Setup
 1) Download and install the latest LTS version of Node.js
-2) Open a terminal in project's root directory and run 'npm start'
-3) Open a browser and go to 'localhost:3000'
+2) Open a terminal in project's root directory and run 'npm install', to install all the necessary node modules
+3) When finished run 'npm start' to start the development server
+4) Open a browser and go to 'localhost:3000'
 
 # Libraries used
 Ant Design base component: https://ant.design/components/auto-complete/
