@@ -2,8 +2,6 @@ import React, { Component } from "react";
 import { Icon, Button, Input, AutoComplete, Spin, Row, Col } from "antd";
 import { debounce } from "lodash";
 import Banner from "./Banner";
-import PropTypes from 'prop-types';
-
 
 const { Option } = AutoComplete;
 
@@ -35,6 +33,8 @@ class Autocomplete extends Component {
   fetchResults = (query, cache) => {
 
     let currentWidth = this.state.width;
+    let device = currentWidth <= 600 ? 'mobile' :
+    currentWidth > 600 && currentWidth < 992 ? 'tablet' : 'desktop';
 
     return new Promise((resolve, reject) => {
 
@@ -49,7 +49,10 @@ class Autocomplete extends Component {
         })
 
         /*** Caching or requesting ***/
-        const cached = JSON.parse(localStorage.getItem(query)); // cached object or null
+
+        /* Getting localstorage item based on device used */
+        const cached = JSON.parse(localStorage.getItem(`${query}-${device}`));
+      
         const nowTimestamp = Date.now();
 
         // Checking if response data for query is cached and if time since caching is within specified prop
@@ -74,8 +77,7 @@ class Autocomplete extends Component {
           fetch(
             `http://35.180.182.8/search?keywords=${query}&language=${
             navigator.language
-            }&limit=${currentWidth <= 600 ? this.props.mobileResultsLimit :
-              currentWidth > 600 && currentWidth < 992 ? this.props.tabletResultsLimit : this.props.desktopResultsLimit
+            }&limit=${this.props[`${device}ResultsLimit`]
             }` // Limit the results depending on screen size
           )
             .then(res => {
@@ -99,7 +101,7 @@ class Autocomplete extends Component {
                     };
                   });
 
-                  let buttonDisabled = !data.length;
+                  let buttonDisabled = !data.entries.length;
 
                   // Updating state with fetched data
                   this.setState({
@@ -109,9 +111,9 @@ class Autocomplete extends Component {
                     noResults: buttonDisabled ? "No results found" : ""
                   });
 
-                  // Caching data if needed
-                  if (cache) localStorage.setItem(query, JSON.stringify(data));
-
+                  // Caching data if needed (cache === true)
+                  if (cache) localStorage.setItem(`${query}-${device}`, JSON.stringify(data));
+                  
                   resolve(data);
 
                 } else {
