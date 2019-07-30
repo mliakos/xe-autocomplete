@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Icon, Button, Input, AutoComplete, Spin, Row, Col } from "antd";
+import { Icon, Button, Input, AutoComplete, Row, Col } from "antd";
 import { debounce } from "lodash";
 import Banner from "./Banner";
 
@@ -74,9 +74,11 @@ class Autocomplete extends Component {
         // Else fetch normally
         else {
 
+          const language = navigator.language.match(/([^-]+)/)[0];
+
           fetch(
             `http://35.180.182.8/search?keywords=${query}&language=${
-            navigator.language
+            language
             }&limit=${this.props[`${device}ResultsLimit`]
             }` // Limit the results depending on screen size
           )
