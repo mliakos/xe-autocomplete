@@ -17,5 +17,5 @@ Autocomplete React component made using Ant Design framework.
 4) Open a browser and go to 'localhost:3000'
 
 # Libraries used
-Ant Design base component: https://ant.design/components/auto-complete/
-Lodash debounce method: https://www.npmjs.com/package/lodash.debounce
+- Ant Design base component: https://ant.design/components/auto-complete/
+- Lodash debounce method: https://www.npmjs.com/package/lodash.debounce
