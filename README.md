@@ -1,4 +1,4 @@
-# xe-autocomplete-frontend-code-challenge
+# xe-autocomplete
 Autocomplete React component made using Ant Design framework. 
 
 # Overview
